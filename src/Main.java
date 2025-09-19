@@ -78,16 +78,18 @@ public class Main {
         System.out.println("  ADMIN MENU - " + currentUser.getFullName());
         System.out.println("===================");
         System.out.println("1. Create hotel");
-        System.out.println("2. Logout");
-        System.out.println("3. Exit");
+        System.out.println("2. Delete hotel");
+        System.out.println("3. Logout");
+        System.out.println("4. Exit");
         System.out.print("Choose an option: ");
 
         String choice = scanner.nextLine().trim();
 
         switch (choice) {
             case "1" -> handleCreateHotel();
-            case "2" -> handleLogout();
-            case "3" -> {
+            case "2" -> handleDeleteHotel();
+            case "3" -> handleLogout();
+            case "4" -> {
                 System.out.println("Goodbye!");
                 System.exit(0);
             }
@@ -208,6 +210,36 @@ public class Main {
         } catch (NumberFormatException e) {
             System.out.println("Please enter a valid number for rooms!");
         }
+    }
+
+    private static void handleDeleteHotel() {
+        
+        List<Hotel> hotels = hotelRepository.getAllHotels();
+        
+        if (hotels.isEmpty()) {
+            System.out.println("No hotels available to delete.");
+            return; 
+        }
+        
+        System.out.println("\nAvailable hotels:");
+        System.out.println("========================");
+        for (int i = 0; i < hotels.size(); i++) {
+            Hotel hotel = hotels.get(i);
+            System.out.println((i + 1) + ". " + hotel.getName() + " (ID: " + hotel.getHotelId() + ")");
+            System.out.println("    " + hotel.getAddress() + " - " + hotel.getAvailableRooms() + " rooms");
+        }
+        
+        System.out.print("\nEnter hotel ID to delete: ");
+        String hotelId = scanner.nextLine().trim();
+        
+        if (hotelId.isEmpty()) {
+            System.out.println("Hotel ID cannot be empty!");
+            return;
+        }
+        
+        boolean success = hotelRepository.deleteHotel(hotelId);
+        
+
     }
 
     private static void handleReserveRoom() {
