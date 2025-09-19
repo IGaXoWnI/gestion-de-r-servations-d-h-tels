@@ -1,10 +1,12 @@
 import domain.Client;
+import domain.Hotel;
 import repository.ClientRepository;
 import repository.HotelRepository;
 import repository.ReservationRepository;
 import service.AuthService;
 import service.ReservationService;
 
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -12,10 +14,11 @@ public class Main {
     private static Scanner scanner = new Scanner(System.in);
     private static AuthService authService;
     private static ReservationService reservationService;
+    private static HotelRepository hotelRepository;
 
     public static void main(String[] args) {
         ClientRepository clientRepository = new ClientRepository();
-        HotelRepository hotelRepository = new HotelRepository();
+        hotelRepository = new HotelRepository();
         ReservationRepository reservationRepository = new ReservationRepository();
 
         authService = new AuthService(clientRepository);
@@ -144,6 +147,92 @@ public class Main {
         String password = scanner.nextLine();
 
         authService.login(email, password);
+    }
+
+    private static void handleListHotels() {
+        
+        List<Hotel> hotels = hotelRepository.getAllHotels();
+        
+        if (hotels.isEmpty()) {
+            System.out.println("📋 No hotels available yet.");
+            System.out.println("💡 Create some hotels first!");
+            return;
+        }
+        
+        System.out.println("========================" );
+        for (int i = 0; i < hotels.size(); i++) {
+            Hotel hotel = hotels.get(i);
+            System.out.println((i + 1) + ". " + hotel.getName());
+            System.out.println("    Address: " + hotel.getAddress());
+            System.out.println("    Available Rooms: " + hotel.getAvailableRooms());
+            System.out.println("    Rating: " + hotel.getRating() + "/5");
+            System.out.println("    ID: " + hotel.getHotelId());
+            System.out.println("========================" );
+        }
+        System.out.println("Total hotels: " + hotels.size());
+    }
+    private static void handleLogout() {
+        authService.logout();
+        System.out.println(" You have been logged out successfully!");
+    }
+    private static void handleCreateHotel() {
+        
+        System.out.print("Hotel name: ");
+        String name = scanner.nextLine().trim();
+        
+        System.out.print("Hotel address: ");
+        String address = scanner.nextLine().trim();
+        
+        System.out.print("Number of available rooms: ");
+        String roomsInput = scanner.nextLine().trim();
+        
+        try {
+            int availableRooms = Integer.parseInt(roomsInput);
+            
+            if (name.isEmpty()) {
+                System.out.println(" Hotel name cannot be empty!");
+                return;
+            }
+            if (address.isEmpty()) {
+                System.out.println("Hotel address cannot be empty!");
+                return;
+            }
+            if (availableRooms < 0) {
+                System.out.println(" Number of rooms cannot be negative!");
+                return;
+            }
+            
+            hotelRepository.addHotel(name, address, availableRooms);
+            System.out.println("✅ Hotel '" + name + "' created successfully!");
+            
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number for rooms!");
+        }
+    }
+
+    private static void handleReserveRoom() {
+        System.out.println("Room reservation feature coming soon...");
+    }
+
+    private static void handleCancelReservation() {
+        System.out.println("Reservation cancellation feature coming soon...");
+    }
+
+    private static void handleReservationHistory() {
+        System.out.println("Reservation history feature coming soon...");
+    }
+
+    private static void handleUpdateProfile() {
+        System.out.println("Profile update feature coming soon...");
+    }
+
+    private static void handleChangePassword() {
+        System.out.println("Password change feature coming soon...");
+    }
+
+    private static void createAdminAccount() {
+        authService.register("Admin", "admin@hotel.com", "admin123");
+        System.out.println("Admin login: admin@hotel.com / admin123");
     }
 
 
