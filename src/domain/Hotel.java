@@ -4,7 +4,7 @@ public class Hotel {
     private String hotelId;
     private String name;
     private String address;
-    private int availableRooms;
+        private int availableRooms;
     private double rating;
 
     public Hotel(String hotelId, String name, String address, int availableRooms, double rating) {

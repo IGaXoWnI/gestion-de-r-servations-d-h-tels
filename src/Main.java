@@ -247,106 +247,74 @@ public class Main {
     private static void handleUpdateHotel() {
         System.out.println("\n📝 === UPDATE HOTEL ===");
         
-        // Step 1: Get all hotels to show the user
         List<Hotel> hotels = hotelRepository.getAllHotels();
         
-        // Step 2: Check if there are any hotels to update
         if (hotels.isEmpty()) {
             System.out.println("📋 No hotels available to update.");
             return;
         }
         
-        // Step 3: Show all hotels with their current information
         System.out.println("\nAvailable hotels:");
-        System.out.println("=" .repeat(70));
+        System.out.println("===============");
         for (int i = 0; i < hotels.size(); i++) {
             Hotel hotel = hotels.get(i);
             System.out.println((i + 1) + ". " + hotel.getName() + " (ID: " + hotel.getHotelId() + ")");
-            System.out.println("   📍 Address: " + hotel.getAddress());
-            System.out.println("   🛏️  Rooms: " + hotel.getAvailableRooms());
-            System.out.println("   ⭐ Rating: " + hotel.getRating() + "/5");
-            System.out.println("   " + "-".repeat(60));
+            System.out.println("    Address: " + hotel.getAddress());
+            System.out.println("     Rooms: " + hotel.getAvailableRooms());
+            System.out.println("    Rating: " + hotel.getRating() + "/5");
+            System.out.println("===============" );
         }
         
-        // Step 4: Ask user for hotel ID to update
         System.out.print("\nEnter hotel ID to update: ");
         String hotelId = scanner.nextLine().trim();
         
-        if (hotelId.isEmpty()) {
-            System.out.println("❌ Hotel ID cannot be empty!");
-            return;
-        }
         
-        // Step 5: Find the hotel to show current values
+        
         Hotel existingHotel = hotelRepository.findHotelById(hotelId);
         if (existingHotel == null) {
-            System.out.println("❌ Hotel with ID '" + hotelId + "' not found!");
+            System.out.println(" Hotel with ID '" + hotelId + "' not found!");
             return;
         }
         
-        // Step 6: Show current values and get new values
-        System.out.println("\nCurrent hotel information:");
         System.out.println("Name: " + existingHotel.getName());
         System.out.println("Address: " + existingHotel.getAddress());
         System.out.println("Rooms: " + existingHotel.getAvailableRooms());
-        System.out.println("Rating: " + existingHotel.getRating());
         
         System.out.println("\nEnter new information (press Enter to keep current value):");
         
-        // Get new name
         System.out.print("New hotel name [" + existingHotel.getName() + "]: ");
         String newName = scanner.nextLine().trim();
         if (newName.isEmpty()) {
-            newName = existingHotel.getName(); // Keep current value
+            newName = existingHotel.getName(); 
         }
         
-        // Get new address
         System.out.print("New hotel address [" + existingHotel.getAddress() + "]: ");
         String newAddress = scanner.nextLine().trim();
         if (newAddress.isEmpty()) {
-            newAddress = existingHotel.getAddress(); // Keep current value
+            newAddress = existingHotel.getAddress();
         }
         
-        // Get new room count
         System.out.print("New available rooms [" + existingHotel.getAvailableRooms() + "]: ");
         String roomsInput = scanner.nextLine().trim();
-        int newRooms = existingHotel.getAvailableRooms(); // Default to current value
+        int newRooms = existingHotel.getAvailableRooms(); 
         
         if (!roomsInput.isEmpty()) {
             try {
                 newRooms = Integer.parseInt(roomsInput);
                 if (newRooms < 0) {
-                    System.out.println("❌ Number of rooms cannot be negative!");
+                    System.out.println(" Number of rooms cannot be negative!");
                     return;
                 }
             } catch (NumberFormatException e) {
-                System.out.println("❌ Please enter a valid number for rooms!");
+                System.out.println(" Please enter a valid number for rooms!");
                 return;
             }
         }
         
-        // Get new rating
-        System.out.print("New rating (0-5) [" + existingHotel.getRating() + "]: ");
-        String ratingInput = scanner.nextLine().trim();
-        double newRating = existingHotel.getRating(); // Default to current value
+       
         
-        if (!ratingInput.isEmpty()) {
-            try {
-                newRating = Double.parseDouble(ratingInput);
-                if (newRating < 0 || newRating > 5) {
-                    System.out.println("❌ Rating must be between 0 and 5!");
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("❌ Please enter a valid number for rating!");
-                return;
-            }
-        }
+        boolean success = hotelRepository.updateHotel(hotelId, newName, newAddress, newRooms);
         
-        // Step 7: Update the hotel
-        boolean success = hotelRepository.updateHotel(hotelId, newName, newAddress, newRooms, newRating);
-        
-        // The repository already shows success/error message
     }
 
     private static void handleReserveRoom() {

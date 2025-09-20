@@ -42,7 +42,7 @@ public class HotelRepository {
         return false;
     }
 
-    public boolean updateHotel(String hotelId, String newName, String newAddress, int newAvailableRooms, double newRating) {
+    public boolean updateHotel(String hotelId, String newName, String newAddress, int newAvailableRooms) {
         for (int i = 0; i < hotels.size(); i++) {
             Hotel hotel = hotels.get(i);
             
@@ -50,7 +50,7 @@ public class HotelRepository {
                 hotel.setName(newName);
                 hotel.setAddress(newAddress);
                 hotel.setAvailableRooms(newAvailableRooms);
-                hotel.setRating(newRating);
+
                 
                 System.out.println("✅ Hotel '" + hotel.getName() + "' updated successfully!");
                 return true;
@@ -67,6 +67,26 @@ public class HotelRepository {
                 return hotel;
             }
         }
-        return null; 
+        return null; t
+    }
+
+
+    public boolean reserve(String hotelId){
+    Hotel hotel = findHotelById(hotelId);
+    hotel.setAvailableRooms(hotel.getAvailableRooms() - 1);
+        System.out.println(" Room reserved");
+        return true ;
+    }
+
+
+    public boolean cancelreservation(String hotelId){
+        Hotel hotel = findHotelById(hotelId);
+        hotel.setAvailableRooms(hotel.getAvailableRooms()+1);
+        return true;
+    }
+
+    public boolean hasAvailableRooms(String hotelId){
+        Hotel hotel = findHotelById(hotelId);
+        return hotel != null && hotel.getAvailableRooms()>0 ;
     }
 }
