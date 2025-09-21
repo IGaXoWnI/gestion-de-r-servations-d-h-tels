@@ -15,15 +15,18 @@ public class Main {
     private static AuthService authService;
     private static ReservationService reservationService;
     private static HotelRepository hotelRepository;
+    private static ReservationRepository reservationRepository;
 
     public static void main(String[] args) {
         ClientRepository clientRepository = new ClientRepository();
         hotelRepository = new HotelRepository();
-        ReservationRepository reservationRepository = new ReservationRepository();
+        reservationRepository = new ReservationRepository();
 
         authService = new AuthService(clientRepository);
+        reservationService = new ReservationService(reservationRepository, hotelRepository);
         
         createAdminAccount();
+        createTestData();
         
         System.out.println("Welcome to Hotel Reservation System");
         System.out.println("===================================");
@@ -158,8 +161,8 @@ public class Main {
         List<Hotel> hotels = hotelRepository.getAllHotels();
         
         if (hotels.isEmpty()) {
-            System.out.println("📋 No hotels available yet.");
-            System.out.println("💡 Create some hotels first!");
+            System.out.println("No hotels available yet.");
+            System.out.println("Create some hotels first!");
             return;
         }
         
@@ -207,7 +210,7 @@ public class Main {
             }
             
             hotelRepository.addHotel(name, address, availableRooms);
-            System.out.println("✅ Hotel '" + name + "' created successfully!");
+            System.out.println(" Hotel '" + name + "' created successfully!");
             
         } catch (NumberFormatException e) {
             System.out.println("Please enter a valid number for rooms!");
@@ -245,12 +248,12 @@ public class Main {
     }
 
     private static void handleUpdateHotel() {
-        System.out.println("\n📝 === UPDATE HOTEL ===");
+        System.out.println("\n=== UPDATE HOTEL ===");
         
         List<Hotel> hotels = hotelRepository.getAllHotels();
         
         if (hotels.isEmpty()) {
-            System.out.println("📋 No hotels available to update.");
+            System.out.println("No hotels available to update.");
             return;
         }
         
@@ -318,28 +321,165 @@ public class Main {
     }
 
     private static void handleReserveRoom() {
-        System.out.println("Room reservation feature coming soon...");
+        System.out.println("\n=== Reserve Room ===");
+        
+        List<Hotel> hotels = hotelRepository.getAllHotels();
+        
+        if (hotels.isEmpty()) {
+            System.out.println("No hotels available for reservation.");
+            return;
+        }
+        
+        System.out.println("\nAvailable hotels:");
+        System.out.println("==================");
+        for (int i = 0; i < hotels.size(); i++) {
+            Hotel hotel = hotels.get(i);
+            System.out.println((i + 1) + ". " + hotel.getName());
+            System.out.println("    Address: " + hotel.getAddress());
+            System.out.println("    Available Rooms: " + hotel.getAvailableRooms());
+            System.out.println("    Rating: " + hotel.getRating() + "/5");
+            System.out.println("    ID: " + hotel.getHotelId());
+            System.out.println("==================");
+        }
+        
+        System.out.print("\nEnter hotel ID: ");
+        String hotelId = scanner.nextLine().trim();
+        
+        if (hotelId.isEmpty()) {
+            System.out.println("Hotel ID cannot be empty!");
+            return;
+        }
+        
+        Hotel selectedHotel = hotelRepository.findHotelById(hotelId);
+        if (selectedHotel == null) {
+            System.out.println("Hotel not found! Please enter a valid hotel ID.");
+            return;
+        }
+        
+        if (selectedHotel.getAvailableRooms() <= 0) {
+            System.out.println("Sorry, no rooms available at " + selectedHotel.getName());
+            return;
+        }
+        
+        System.out.print("Enter number of nights: ");
+        String nightsInput = scanner.nextLine().trim();
+        
+        try {
+            int nights = Integer.parseInt(nightsInput);
+            
+            if (nights <= 0) {
+                System.out.println("Number of nights must be greater than 0!");
+                return;
+            }
+            
+            Client currentUser = authService.getCurrentUser();
+            boolean success = reservationService.createReservation(currentUser.getId(), hotelId, nights);
+            
+            if (success) {
+                System.out.println("Reservation created successfully!");
+                System.out.println("Hotel: " + selectedHotel.getName());
+                System.out.println("Nights: " + nights);
+            }
+            
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number for nights!");
+        }
     }
 
     private static void handleCancelReservation() {
-        System.out.println("Reservation cancellation feature coming soon...");
+        System.out.println("\n=== Cancel Reservation ===");
+        
+        Client currentUser = authService.getCurrentUser();
+        
+        List<domain.Reservation> userReservations = reservationRepository.getClientReservations(currentUser.getId());
+        
+        if (userReservations.isEmpty()) {
+            System.out.println("You have no reservations to cancel.");
+            return;
+        }
+        
+        System.out.println("\nYour reservations:");
+        System.out.println("==================");
+        for (int i = 0; i < userReservations.size(); i++) {
+            domain.Reservation reservation = userReservations.get(i);
+            Hotel hotel = hotelRepository.findHotelById(reservation.getHotelId());
+            
+            System.out.println((i + 1) + ". Reservation ID: " + reservation.getId());
+            System.out.println("    Hotel: " + (hotel != null ? hotel.getName() : "Unknown"));
+            System.out.println("    Date: " + reservation.getFormattedDate());
+            System.out.println("    Nights: " + reservation.getNights());
+            System.out.println("==================");
+        }
+        
+        System.out.print("\nEnter reservation ID to cancel: ");
+        String reservationIdInput = scanner.nextLine().trim();
+        
+        if (reservationIdInput.isEmpty()) {
+            System.out.println("Reservation ID cannot be empty!");
+            return;
+        }
+        
+        try {
+            UUID reservationId = UUID.fromString(reservationIdInput);
+            boolean success = reservationService.cancelReservation(currentUser.getId(), reservationId);
+            
+            if (success) {
+                System.out.println("Reservation cancelled successfully!");
+            }
+            
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid reservation ID format!");
+        }
     }
 
     private static void handleReservationHistory() {
-        System.out.println("Reservation history feature coming soon...");
+        System.out.println("\n=== My Reservation History ===");
+        
+        Client currentUser = authService.getCurrentUser();
+        
+        List<domain.Reservation> userReservations = reservationRepository.getClientReservations(currentUser.getId());
+        
+        if (userReservations.isEmpty()) {
+            System.out.println("You have no reservation history.");
+            return;
+        }
+        
+        System.out.println("\nYour reservations:");
+        System.out.println("==================");
+        
+        for (int i = 0; i < userReservations.size(); i++) {
+            domain.Reservation reservation = userReservations.get(i);
+            Hotel hotel = hotelRepository.findHotelById(reservation.getHotelId());
+            
+            System.out.println((i + 1) + ". Reservation Details:");
+            System.out.println("    ID: " + reservation.getId());
+            System.out.println("    Hotel: " + (hotel != null ? hotel.getName() : "Hotel not found"));
+            if (hotel != null) {
+                System.out.println("    Address: " + hotel.getAddress());
+            }
+            System.out.println("    Date: " + reservation.getFormattedDate());
+            System.out.println("    Nights: " + reservation.getNights());
+            System.out.println("==================");
+        }
+        
+        System.out.println("\nTotal reservations: " + userReservations.size());
     }
 
-    private static void handleUpdateProfile() {
-        System.out.println("Profile update feature coming soon...");
-    }
-
-    private static void handleChangePassword() {
-        System.out.println("Password change feature coming soon...");
-    }
+    
 
     private static void createAdminAccount() {
         authService.register("Admin", "admin@hotel.com", "admin123");
         System.out.println("Admin login: admin@hotel.com / admin123");
+    }
+
+    private static void createTestData() {
+        authService.register("ismail baguni", "igaxowni@gmail.com", "password123");
+        System.out.println("Test client login: igaxowni@gmail.com / password123");
+
+        hotelRepository.addHotel("Grand Palace Hotel", "123 Main Street, Downtown", 15);
+        hotelRepository.addHotel("Ocean View Resort", "456 Beach Road, Seaside", 8);
+        
+        System.out.println("Test data created: 1 client and 2 hotels");
     }
 
 

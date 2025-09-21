@@ -58,4 +58,35 @@ public class ReservationService {
             return false ;
         }
     }
+    public boolean cancelReservation(UUID clienId , UUID reservationId){
+        if(reservationId== null){
+            System.out.println("the reservation id can't be null ");
+            return false ;
+        }
+
+        Reservation reservation = reservationRepository.getReservationById(reservationId);
+        if(reservation==null){
+            System.out.println("the reservation not found  ");
+            return false ;
+        }
+
+        if(!reservation.getClientId().equals(clienId)){
+            System.out.println("this reservation not belong you you can't cancel it");
+            return false ;
+        }
+        Hotel hotel = hotelRepository.findHotelById(reservation.getHotelId());
+        String hotelName = hotel.getName();
+
+        boolean deleteReservation = reservationRepository.delete(reservation);
+        if(deleteReservation){
+            hotelRepository.cancelreservation(reservation.getHotelId());
+            System.out.println("the reservation canceled succesfully");
+            return true ;
+        }else{
+            System.out.println("the reservation not cancelled !!");
+            return false ;
+        }
+    }
+
+
 }
